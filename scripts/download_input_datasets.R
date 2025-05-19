@@ -16,13 +16,18 @@ retrieve_data <- function(city_name, river_name, bb, force_download = FALSE) {
   stem <- paste(city_name, river_name, sep = "_")
   osm_filepath <- file.path(OUTPUT_OSM_DIR, paste(stem, "gpkg", sep = "."))
   dem_filepath <- file.path(OUTPUT_DEM_DIR, paste(stem, "tif", sep = "."))
+  if (file.exists(osm_filepath) && file.exists(dem_filepath)) return()
+
+  # The city might include several disconnected polygons. Refine the bounding
+  # box to focus on the largest polygon
+  bb_refined <- refine_bb(bb, city_name)
 
   # Define projected coordinate reference system for the area
-  crs <- get_utm_zone(bb)
+  crs <- get_utm_zone(bb_refined)
 
   # Retrieve and write OSM data
-  river <- get_river(river_name, bb, force_download = force_download)
-  aoi_network <- st_buffer(st_crop(river, bb), NETWORK_BUFFER)
+  river <- get_river(river_name, bb_refined, force_download = force_download)
+  aoi_network <- st_buffer(st_crop(river, bb_refined), NETWORK_BUFFER)
   network <- get_network(aoi_network, force_download = force_download)
   write_osm(c(network, list(river = river)), osm_filepath, crs = crs)
 
@@ -30,6 +35,24 @@ retrieve_data <- function(city_name, river_name, bb, force_download = FALSE) {
   aoi_dem <- st_buffer(aoi_network, DEM_BUFFER)
   dem <- get_dem(aoi_dem, force_download = force_download)
   write_dem(dem, dem_filepath, crs = crs)
+}
+
+refine_bb <- function(bb, city_name, force_download = FALSE) {
+  bound <- get_osm_city_boundary(bb, city_name, force_download = force_download)
+
+  # The city boundary might include several disjoint polygons. By casting to
+  # POLYGON, then LINESTRING, and then POLYGON again, we separate the geometries
+  bound <- bound |>
+    st_cast("POLYGON") |>
+    st_cast("LINESTRING") |>
+    st_cast("POLYGON")
+
+  # We calculate the area for each polygon and select the largest one
+  bound |>
+    st_as_sf() |>
+    mutate(area = st_area(x)) |>
+    filter(area == max(area)) |>
+    st_bbox()
 }
 
 get_river <- function(river_name, bb, force_download = force_download) {
@@ -42,6 +65,30 @@ get_river <- function(river_name, bb, force_download = force_download) {
     st_union()
 }
 
+get_osm_railways <- function(aoi, crs = NULL, force_download = FALSE) {
+  railways <- osmdata_as_sf("railway", "rail", aoi,
+                            force_download = force_download)
+  # If no railways are found, return an empty sf object
+  if (is.null(railways$osm_lines)) {
+    if (is.null(crs)) crs <- sf::st_crs("EPSG:4326")
+    empty_sf <- sf::st_sf(geometry = sf::st_sfc(crs = crs))
+    return(empty_sf)
+  }
+
+  railways_lines <- railways$osm_lines |>
+    dplyr::select("railway") |>
+    dplyr::rename(!!sym("type") := !!sym("railway"))
+
+  # Intersect with the bounding polygon
+  if (inherits(aoi, "bbox")) aoi <- sf::st_as_sfc(aoi)
+  mask <- sf::st_intersects(railways_lines, aoi, sparse = FALSE)
+  railways_lines <- railways_lines[mask, ]
+
+  if (!is.null(crs)) railways_lines <- sf::st_transform(railways_lines, crs)
+
+  railways_lines
+}
+
 get_network <- function(aoi, force_download) {
   list(
     streets = get_osm_streets(aoi, force_download = force_download),
@@ -50,32 +97,29 @@ get_network <- function(aoi, force_download) {
 }
 
 write_osm <- function(data, filepath, crs = NULL) {
-  if (!is_path_valid(filepath)) return()
+  # Make sure directory exists
+  dir.create(dirname(filepath), showWarnings = FALSE)
+  # Create new file for the first layer ...
+  append <- FALSE
   for (name in names(data)) {
     if (!is.null(crs)) obj <- st_transform(data[[name]], crs)
-    st_write(obj, filepath, layer = name, append = TRUE)
+    st_write(obj, filepath, layer = name, append = append)
+    # ... then append existing layers in the existing file
+    append <- TRUE
   }
 }
 
 write_dem <- function(data, filepath, crs = NULL) {
-  if (!is_path_valid(filepath)) return()
+  # Make sure directory exists
+  dir.create(dirname(filepath), showWarnings = FALSE)
   if (!is.null(crs)) obj <- project(data, crs(paste("EPSG", crs, sep = ":")))
   writeRaster(obj, filepath)
 }
 
-is_path_valid <- function(filepath) {
-  if (file.exists(filepath)) {
-    print(paste("File exists:", filepath, " - skipping it"))
-    return(FALSE)
-  } else {
-    dir.create(dirname(filepath), showWarnings = FALSE)
-    return(TRUE)
-  }
-}
-
-# Load city rivers data frame
+# Load city rivers as a data frame
 city_rivers <- read.csv(CITY_RIVERS_FILEPATH)
-# Loop over rows of the data frame and retrieve data
+
+# Loop over the cities and retrieve the input data
 for (n in seq_len(nrow(city_rivers))) {
   cr <- city_rivers[n, ]
   bb <- st_bbox(c(xmin = cr$xmin,

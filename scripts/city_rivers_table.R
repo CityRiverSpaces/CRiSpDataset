@@ -84,7 +84,7 @@ city_rivers <- get_cities(POPULATION_FILEPATH, POPULATION_THRESHOLD)
 bbs <- lapply(city_rivers$city_name, get_osm_bb)
 # Find the main rivers intersecting the cities
 city_rivers["river_name"] <- sapply(bbs, get_river_name, simplify = TRUE)
-# Conver bounding box list to data frame, and merge to the data frame
+# Convert bounding box list to data frame, and merge to the data frame
 bbs_df <- as.data.frame(do.call(rbind, bbs))
 city_rivers <- cbind(city_rivers, bbs_df)
 # Drop cities without a river

@@ -3,31 +3,49 @@ library(dplyr)
 library(sf)
 library(terra)
 
-
+# Set input parameters
 CITY_RIVERS_FILEPATH <- file.path("output", "city_rivers.csv")
 NETWORK_BUFFER <- 3500
 DEM_BUFFER <- 2500
 OUTPUT_OSM_DIR <- file.path("output", "osm")
 OUTPUT_DEM_DIR <- file.path("output", "dem")
 
+run <- function(city_rivers_filepath, network_buffer = 3500, dem_buffer = 2500,
+                output_osm_dir = "osm", output_dem_dir = "dem") {
+  # Load city rivers as a data frame
+  city_rivers <- read.csv(CITY_RIVERS_FILEPATH)
+
+  # Loop over the cities and retrieve the input data
+  for (n in seq_len(nrow(city_rivers))) {
+    cr <- city_rivers[n, ]
+    city_name <- cr$city_name
+    river_name <- cr$river_name
+    bb <- st_bbox(c(xmin = cr$xmin,
+                    xmax = cr$xmax,
+                    ymin = cr$ymin,
+                    ymax = cr$ymax),
+                  crs = 4326)
+    print(sprintf("%d - retrieve data for: %s - %s", n, city_name, river_name))
+    retrieve_data(city_name, river_name, bb)
+  }
+}
 
 retrieve_data <- function(city_name, river_name, bb, force_download = FALSE) {
   # Define output filenames
   stem <- paste(city_name, river_name, sep = "_")
   osm_filepath <- file.path(OUTPUT_OSM_DIR, paste(stem, "gpkg", sep = "."))
   dem_filepath <- file.path(OUTPUT_DEM_DIR, paste(stem, "tif", sep = "."))
-  if (file.exists(osm_filepath) && file.exists(dem_filepath)) return()
-
-  # The city might include several disconnected polygons. Refine the bounding
-  # box to focus on the largest polygon
-  bb_refined <- refine_bb(bb, city_name)
-
+  if (file.exists(osm_filepath) && file.exists(dem_filepath)) {
+    message(sprintf("Files for %s / %s exist - skipping it.",
+                    city_name, river_name))
+    return()
+  }
   # Define projected coordinate reference system for the area
-  crs <- get_utm_zone(bb_refined)
+  crs <- get_utm_zone(bb)
 
   # Retrieve and write OSM data
-  river <- get_river(river_name, bb_refined, force_download = force_download)
-  aoi_network <- st_buffer(st_crop(river, bb_refined), NETWORK_BUFFER)
+  river <- get_river(river_name, bb, force_download = force_download)
+  aoi_network <- st_buffer(st_crop(river, bb), NETWORK_BUFFER)
   network <- get_network(aoi_network, force_download = force_download)
   write_osm(c(network, list(river = river)), osm_filepath, crs = crs)
 
@@ -37,27 +55,12 @@ retrieve_data <- function(city_name, river_name, bb, force_download = FALSE) {
   write_dem(dem, dem_filepath, crs = crs)
 }
 
-refine_bb <- function(bb, city_name, force_download = FALSE) {
-  bound <- get_osm_city_boundary(bb, city_name, force_download = force_download)
-
-  # The city boundary might include several disjoint polygons. By casting to
-  # POLYGON, then LINESTRING, and then POLYGON again, we separate the geometries
-  bound <- bound |>
-    st_cast("POLYGON") |>
-    st_cast("LINESTRING") |>
-    st_cast("POLYGON")
-
-  # We calculate the area for each polygon and select the largest one
-  bound |>
-    st_as_sf() |>
-    mutate(area = st_area(x)) |>
-    filter(area == max(area)) |>
-    st_bbox()
-}
-
 get_river <- function(river_name, bb, force_download = force_download) {
   osm <- osmdata_as_sf("waterway", "river", bb, force_download = force_download)
-  bind_rows(osm$osm_lines, osm$osm_multilines) |>
+  lines <- osm$osm_lines
+  if (!is.null(osm$osm_multilines)) lines <- bind_rows(lines,
+                                                       osm$osm_multilines)
+  lines |>
     filter(if_any(matches("name"), \(x) x == river_name)) |>
     # the query can return more features than actually intersecting the bb
     st_filter(st_as_sfc(bb), .predicate = st_intersects) |>
@@ -116,16 +119,9 @@ write_dem <- function(data, filepath, crs = NULL) {
   writeRaster(obj, filepath)
 }
 
-# Load city rivers as a data frame
-city_rivers <- read.csv(CITY_RIVERS_FILEPATH)
-
-# Loop over the cities and retrieve the input data
-for (n in seq_len(nrow(city_rivers))) {
-  cr <- city_rivers[n, ]
-  bb <- st_bbox(c(xmin = cr$xmin,
-                  xmax = cr$xmax,
-                  ymin = cr$ymin,
-                  ymax = cr$ymax),
-                crs = 4326)
-  retrieve_data(cr$city_name, cr$river_name, bb)
-}
+# Call the main function
+run(CITY_RIVERS_FILEPATH,
+    network_buffer = NETWORK_BUFFER,
+    dem_buffer = DEM_BUFFER,
+    output_osm_dir = OUTPUT_OSM_DIR,
+    output_dem_dir = OUTPUT_DEM_DIR)

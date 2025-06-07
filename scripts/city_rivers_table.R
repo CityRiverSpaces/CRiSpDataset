@@ -1,4 +1,4 @@
-library(CRiSp)
+library(rcrisp)
 library(dplyr)
 library(osmdata)
 library(sf)
@@ -67,6 +67,10 @@ get_cities <- function(population_filepath, population_threshold) {
     mutate(city_name = str_replace(city_name,
                                    "Greater\\ Valletta",
                                    "Valletta")) |>
+    # Denizli -> Denizli, Pamukkale (avoid conflict with province)
+    mutate(city_name = str_replace(city_name,
+                                   "Denizli",
+                                   "Denizli,\\ Pamukkale")) |>
     # When double names are given (using "/" as separator), only consider
     # first one
     mutate(city_name = str_remove(city_name, "/.*$"))
@@ -165,7 +169,9 @@ get_river_name <- function(bb, force_download = FALSE) {
       mutate(length = st_length(geometry)) |>
       # Find longest segment
       filter(length == max(length))
-    return(longest_river$name)
+    # When two names are given with "/" as separator, only consider the first
+    river_name <- str_remove(longest_river$name, "/.*$")
+    return(river_name)
   }
 }
 

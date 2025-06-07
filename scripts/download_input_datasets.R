@@ -68,30 +68,6 @@ get_river <- function(river_name, bb, force_download = force_download) {
     st_union()
 }
 
-get_osm_railways <- function(aoi, crs = NULL, force_download = FALSE) {
-  railways <- osmdata_as_sf("railway", "rail", aoi,
-                            force_download = force_download)
-  # If no railways are found, return an empty sf object
-  if (is.null(railways$osm_lines)) {
-    if (is.null(crs)) crs <- sf::st_crs("EPSG:4326")
-    empty_sf <- sf::st_sf(geometry = sf::st_sfc(crs = crs))
-    return(empty_sf)
-  }
-
-  railways_lines <- railways$osm_lines |>
-    dplyr::select("railway") |>
-    dplyr::rename(!!sym("type") := !!sym("railway"))
-
-  # Intersect with the bounding polygon
-  if (inherits(aoi, "bbox")) aoi <- sf::st_as_sfc(aoi)
-  mask <- sf::st_intersects(railways_lines, aoi, sparse = FALSE)
-  railways_lines <- railways_lines[mask, ]
-
-  if (!is.null(crs)) railways_lines <- sf::st_transform(railways_lines, crs)
-
-  railways_lines
-}
-
 get_network <- function(aoi, force_download) {
   list(
     streets = get_osm_streets(aoi, force_download = force_download),

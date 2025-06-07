@@ -1,4 +1,4 @@
-library(CRiSp)
+library(rcrisp)
 library(dplyr)
 library(sf)
 library(terra)

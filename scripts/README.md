@@ -1,15 +1,15 @@
 # Scripts
 
-1. [`city_rivers_table.R`](./city_rivers_table.R): Clean the [Eurostat city population dataset](https://ec.europa.eu/eurostat/web/regions-and-cities) (see raw [dataset](../data/)) to identify urban areas with population above a certain threshold, identify main water streams in the urban areas (when present) and save output table to a CSV file (see output [dataset](../output/city_rivers.csv)).
+1. [`city_rivers_table.R`](./city_rivers_table.R): Clean the [Eurostat city population dataset](https://ec.europa.eu/eurostat/web/regions-and-cities) (see raw [dataset](../data/) retrieved as part of this repository) to identify urban areas with population above a certain threshold. For each urban area, the main waterway is idenfified (when present) on the basis of Open Street Map (OSM) data. The City River table is written a CSV file (see resulting [dataset](../output/city_rivers.csv)).
 
-2. [`download_input_datasets.R`](./download_input_datasets.R): Take the city river table (see point 1., dataset [here](../output/city_rivers.csv)), and for each city river retrieve input data required to carry out the corridor delineation and segmentation: street and rail networks, river centerline, digital elevation model (DEM).
+2. [`download_input_datasets.R`](./download_input_datasets.R): Take the City River table (see point 1., dataset [here](../output/city_rivers.csv)), and for each city river retrieve all the input data required to carry out the corridor delineation and segmentation: OSM datasets (street and rail networks, river centerline) and Copernicus 30m Digital Elevation Model (DEM).
 
-3. [generate_corridor.R](./generate_corridor.R): Run the corridor delineation and segmentation, using the input data retrieved (see point 2.). The script carry out the delineations for a single city, taking the path to the input and output paths as command line arguments, e.g.:
+3. [generate_corridor.R](./generate_corridor.R): Run the corridor delineation and segmentation, using the input data retrieved (see point 2.). The script carries out the delineations for a single city, taking the path to the input and output paths as command line arguments, e.g.:
 ```shell
 Rscript generate_corridor.R /path/to/input/vector/data.gpkg /path/to/input/raster/dem.tif  /path/to/output/delineations.gpkg
 ```
-Run for all cities via the [`generate_corridor.bash`](./generate_corridor.bash) shell script. NOTE: only the segments are actually saved as output, since the corridor can be easily obtained from the segments via unioning their geometries.
+Run for all cities via the [`generate_corridor.bash`](./generate_corridor.bash) shell script. NOTE: only the segments are actually saved as output, since the corridor can be easily obtained from the segments via unioning of their geometries.
 
-4. [`retrieve_features.R`](./retrieve_features.R): Using the corridor geometries, retrieve all the basic OSM features to calculate the metrics: streets and railways from all the hyerarchy levels, buildings, river geometries.
+4. [`retrieve_features.R`](./retrieve_features.R): Using the segments (corridor) geometries, retrieve all the basic OSM features to calculate the metrics: streets and railways (all hyerarchy levels), buildings, the river surface geometry.
 
-5. [`compute_metrics.R`](./compute_metrics.R): Estimate the metrics for all the city rivers, and save output to a CSV file (see output [dataset](../output/city_rivers_metrics.csv)).
+5. [`compute_metrics.R`](./compute_metrics.R): Estimate the metrics for all the city rivers and segments, and save output to a GPKG file (see output [dataset](../output/city_rivers_metrics.gpkg)).

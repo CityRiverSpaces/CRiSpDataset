@@ -32,7 +32,7 @@ run <- function(city_rivers_filepath, segments_dir, features_dir,
     river_name <- cr$river_name
     segments <- load_vector_data(city_name, river_name, dir = segments_dir)
     if (is.null(segments)) next
-    print(paste("Computing metrics for ", city_name))
+    print(paste0("Computing metrics for ", river_name, ", ", city_name))
     features <- get_features(city_name, river_name, segments,
                              dir = features_dir)
     metrics <- compute_metrics(

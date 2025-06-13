@@ -20,7 +20,8 @@ OUTPUT_METRICS_FILEPATH <- file.path("output", "city_rivers_metrics.gpkg")
 run <- function(city_rivers_filepath, segments_dir, features_dir,
                 output_metrics_filepath) {
   # Load city river table as a data frame
-  city_rivers <- read.csv(city_rivers_filepath)
+  city_rivers <- read.csv(city_rivers_filepath) |>
+    filter(!city_name %in% c("Paris", "London"))
 
   # Loop over the cities, retrieve the segments and features for the available
   # city rivers. For each segment, compute a list of metrics.

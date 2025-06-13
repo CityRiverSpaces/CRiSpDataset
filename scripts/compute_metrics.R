@@ -195,22 +195,23 @@ get_perimeter_area_ratio <- function(segments) {
 get_open_space_ratio <- function(segments, buildings) {
   # Calculate the OSR in the nsegment-th segment
   calc_open_space_ratio <- function(nsegment) {
-    area_buildings <- st_intersection(st_geometry(buildings), segments[nsegment, ]) |>
+    segment <- segments[nsegment, ]
+    area_buildings <- st_intersection(st_geometry(buildings), segment) |>
       st_as_sf() |>
       filter(st_geometry_type(x) %in% c("POLYGON", "MULTIPOLYGON")) |>
       st_area() |>
       sum()
-    area_segment <- st_area(segments[nsegment, ])
+    area_segment <- st_area(segment)
     (area_segment - area_buildings) / area_segment
   }
   sapply(seq_len(nrow(segments)), calc_open_space_ratio)
 }
 
-
 get_network_length <- function(segments, edges) {
   # Calculate the total network length in the nsegment-th segment
   calc_network_length <- function(nsegment) {
-    st_intersection(st_geometry(edges), segments[nsegment, ]) |>
+    segment <- segments[nsegment, ]
+    st_intersection(st_geometry(edges), segment) |>
       st_as_sf() |>
       filter(st_geometry_type(x) %in% c("LINESTRING", "MULTILINESTRING")) |>
       st_length() |>

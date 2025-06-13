@@ -125,6 +125,21 @@ compute_metrics <- function(streets, railways, buildings, segments, blocks,
   metrics["sa_a_m"] <- get_mean_sanctuary_area(segments, sanctuary_polygons)
   # Standard deviation of sanctuary area
   metrics["sa_a_sd"] <- get_sd_sanctuary_area(segments, sanctuary_polygons)
+  # Sinuosity of river centerline
+  metrics["rc_sin"] <- get_sinuosity(segments, river_centerline)
+  # Number of river crossings
+  metrics["rc_cr_n"] <-
+    get_number_of_river_crossings(segments, river_centerline, streets, railways)
+  # Density of river crossings
+  metrics["rc_cr_d"] <-
+    get_crossings_linear_density(segments, river_centerline,
+                                 metrics[["rc_cr_n"]])
+  # Ratio of river surface area
+  metrics["rs_a_p"] <-
+    get_river_surface_area_ratio(segments, river_surface)
+
+  metrics <- metrics |>
+    filter(!is.infinite(rc_sin))
 
   # Return computed metrics
   metrics
@@ -239,5 +254,71 @@ get_sd_sanctuary_area <- function(segments, sanctuary_polygons) {
   sapply(intersections, \(n) sd(st_area(sanctuary_polygons[n])))
 }
 
+get_sinuosity <- function(segments, river_centerline) {
+  # Calculate the sinuosity in the nsegment-th segment
+  calc_sinuosity <- function(nsegment) {
+    segment <- segments[nsegment, ]
+    river <- st_intersection(river_centerline, segment)
+    river <- river[which.max(st_length(river)), ] # Take the longest river centerline
+    river_length <- st_length(river)
+    # get the euclidean distance between the start and end points of the river
+    coords <- st_coordinates(river)
+    start_point <- st_point(coords[1, ])
+    end_point <- st_point(coords[nrow(coords), ])
+    straight_line <-
+      st_sfc(st_cast(st_linestring(rbind(start_point, end_point)),
+                     "LINESTRING"), crs = st_crs(river))
+    straight_length <- st_length(straight_line)
+
+    river_length / straight_length
+  }
+  sapply(seq_len(nrow(segments)), calc_sinuosity)
+}
+
+get_number_of_river_crossings <- function(segments, river_centerline,
+                                          streets, railways) {
+  # Get the number of crossings in the nsegment-th segment
+  calc_number_of_crossings <- function(nsegment) {
+    segment <- segments[nsegment, ]
+    river <- st_intersection(st_geometry(river_centerline), segment)
+    # if (st_is_empty(river)) return(NULL)
+    # Get the number of crossings with streets and railways
+    crossings_streets <- st_intersects(river, streets)
+    crossings_railways <- st_intersects(river, railways)
+    sum(sapply(crossings_streets, length)) +
+      sum(sapply(crossings_railways, length))
+  }
+  sapply(seq_len(nrow(segments)), calc_number_of_crossings)
+}
+
+get_crossings_linear_density <- function(segments, river_centerline, n_crossings) {
+  # Calculate the linear density of crossings in the nsegment-th segment
+  calc_crossings_linear_density <- function(nsegment) {
+    segment <- segments[nsegment, ]
+    river <- st_intersection(st_geometry(river_centerline), segment)
+    river <- river[which.max(st_length(river)), ] # Take the longest river centerline
+    # if (st_is_empty(river)) return(NULL)
+    river_length <- st_length(river)
+    n_crossings[nsegment] / river_length
+  }
+  sapply(seq_len(nrow(segments)), calc_crossings_linear_density)
+}
+
+get_river_surface_area_ratio <- function(segments, river_surface) {
+  # Calculate the percentage of river surface area in the nsegment-th segment
+  calc_river_surface_area_percentage <- function(nsegment) {
+    segment <- segments[nsegment, ]
+    river_area <- st_intersection(st_geometry(river_surface), segment) |>
+      st_as_sf() |>
+      filter(st_geometry_type(x) %in% c("POLYGON", "MULTIPOLYGON")) |>
+      st_area() |>
+      sum()
+    area_segment <- st_area(segment)
+    river_area / area_segment
+  }
+  sapply(seq_len(nrow(segments)), calc_river_surface_area_percentage)
+}
+
 # Call the main function
 run(CITY_RIVERS_FILEPATH, SEGMENT_DIR, FEATURES_DIR, OUTPUT_METRICS_FILEPATH)
+

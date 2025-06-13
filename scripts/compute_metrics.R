@@ -102,6 +102,8 @@ compute_metrics <- function(streets, railways, buildings, segments, blocks,
   # city rivers
   metrics <- st_transform(segments, "EPSG:4326")
   # Metrics specific to urban river spaces
+  # Corridor segment area
+  metrics["cs_a"] <- get_cs_area(segments)
   # Perimeter area ratio
   metrics["cs_par"] <- get_perimeter_area_ratio(segments)
   # Open space ratio
@@ -181,6 +183,9 @@ get_sanctuary_polygons <- function(corridor, streets) {
     st_collection_extract()
 }
 
+get_cs_area <- function(segments) {
+  st_area(segments)
+}
 
 get_perimeter_area_ratio <- function(segments) {
   st_length(st_boundary(segments)) / st_area(segments)

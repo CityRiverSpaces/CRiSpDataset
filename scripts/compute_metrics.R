@@ -41,7 +41,9 @@ run <- function(city_rivers_filepath, segments_dir, features_dir,
       buildings = features[["buildings"]],
       segments = features[["segments"]],
       blocks = features[["blocks"]],
-      sanctuary_polygons = features[["sanctuary_polygons"]]
+      sanctuary_polygons = features[["sanctuary_polygons"]],
+      river_centerline = features[["river_centerline"]],
+      river_surface = features[["river_surface"]]
     )
     metrics["city_name"] <- city_name
     metrics["river_name"] <- river_name
@@ -93,7 +95,9 @@ get_features <- function(city_name, river_name, segments, dir = ".") {
   )
 }
 
-compute_metrics <- function(streets, railways, buildings, segments, blocks, sanctuary_polygons) {
+compute_metrics <- function(streets, railways, buildings, segments, blocks,
+                            sanctuary_polygons, river_centerline,
+                            river_surface) {
   # Set segment geometries in lat/lon, so that we can merge results for all
   # city rivers
   metrics <- st_transform(segments, "EPSG:4326")

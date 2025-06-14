@@ -5,6 +5,7 @@ library(leaflet)
 library(tidyr)
 library(factoextra)
 library(car)
+library(corrplot)
 
 metrics <- st_read("output/city_rivers_metrics.gpkg")
 
@@ -19,7 +20,7 @@ leaflet(metrics) %>%
 metrics$id <- 1:nrow(metrics)
 
 # check outliers
-vars <- metrics[, c("cs_a", "cs_par", "cs_osr", "sn_l", "rn_l", "sn_d", "rn_d", "b_c", "b_d", "sa_a_m", "sa_a_sd", "rc_sin", "rc_cr_n", "rc_cr_d", "rs_a_p", "id")]
+vars <- metrics[, c("cs_a", "cs_par", "cs_osr", "sn_l", "rn_l", "sn_d", "rn_d", "b_c", "b_d", "sa_a_m", "sa_a_sd", "rc_sin", "rc_cr_n", "rs_a_p", "id")]
 
 vars_df <- st_drop_geometry(vars)
 pairs(vars_df)
@@ -68,10 +69,11 @@ ggplot(vars_clean_nona, aes(x = rc_sin)) +
 
 nrow(vars_clean_nona)
 # check correlation
-cor_matrix <- cor(select(vars_clean, -id), use = "complete.obs")
+cor_matrix <- cor(select(vars_clean, -id, -b_d, -b_c, -sn_d), use = "complete.obs")
 
 print(round(cor_matrix, 2))
 #write.csv(round(cor_matrix,2), "output_yw/correlation_cleaned.csv")
+corrplot(cor_matrix, method="circle", type="upper")
 
 # if no sample deleted, (before cleaning) ,sn_l & b_c =0.87 ; sn_d & b_d =0.87, so maybe remove one/two of them
 # but after checking VIF, both showed low vif <10, so they are kept
@@ -103,11 +105,12 @@ vars_ <- vars_df[, !(names(vars_df) == "b_d")]
 
 
 # vars_new <- vars_clean %>% select(-sn_l, -sn_d)
-vars_new <- vars_clean %>% select(-b_c, -b_d)
+vars_new <- vars_clean_nona %>% select(-b_c, -b_d, -sn_d)
 View(vars_new)
 
+
 #------------------------------# scale
-vars_scaled <- scale(select(vars_clean_nona, -id))
+vars_scaled <- scale(select(vars_new, -id))
 colSums(is.na(vars_scaled))
 head(vars_scaled)
 View(vars_clean)
@@ -116,13 +119,12 @@ View(vars_clean)
 
 fviz_nbclust(vars_scaled, kmeans, method = "silhouette", k.max = 9, nstart = 20)
 
-
 #------------------------------## kmeans clustering
 
 set.seed(0)  # The number 0 is just a fixed choice. You can also use 10, 345, etc.
 
 # Choose the number of clusters based on the elbow plot
-k <- 4
+k <- 5
 
 # Run K-means clustering on the standardized data
 kmeans_result <- kmeans(vars_scaled, centers = k, nstart = 20)
@@ -143,7 +145,6 @@ plot(metrics_clustered["cluster"],
      border = NA)
 
 # visualize the clusters in map
-library(leaflet)
 pal <- colorFactor("Set1", domain = metrics_clustered$cluster)
 
 leaflet(metrics_clustered) %>%

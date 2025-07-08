@@ -9,7 +9,3 @@
 Rscript generate_corridor.R /path/to/input/vector/data.gpkg /path/to/input/raster/dem.tif  /path/to/output/delineations.gpkg
 ```
 Run for all cities via the [`generate_corridor.bash`](./generate_corridor.bash) shell script. NOTE: only the segments are actually saved as output, since the corridor can be easily obtained from the segments via unioning of their geometries.
-
-4. [`retrieve_features.R`](./retrieve_features.R): Using the segments (corridor) geometries, retrieve all the basic OSM features to calculate the metrics: streets and railways (all hyerarchy levels), buildings, the river surface geometry.
-
-5. [`compute_metrics.R`](./compute_metrics.R): Estimate the metrics for all the city rivers and segments, and save output to a GPKG file (see output [dataset](../output/city_rivers_metrics.gpkg)).

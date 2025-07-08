@@ -1,6 +1,6 @@
-library(rcrisp)
 library(dplyr)
 library(osmdata)
+library(rcrisp)
 library(sf)
 library(stringr)
 

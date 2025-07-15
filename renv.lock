@@ -4,7 +4,7 @@
     "Repositories": [
       {
         "Name": "CRAN",
-        "URL": "https://packagemanager.posit.co/cran/latest"
+        "URL": "https://cloud.r-project.org"
       }
     ]
   },
@@ -1542,7 +1542,7 @@
       "NeedsCompilation": "no",
       "Author": "Francesco Nattino [aut, cre, cph] (ORCID: <https://orcid.org/0000-0003-3286-0139>), Claudiu Forgaci [aut] (ORCID: <https://orcid.org/0000-0003-3218-5102>), Fakhereh Alidoost [aut] (ORCID: <https://orcid.org/0000-0001-8407-6472>), Thijs van Lankveld [ctb] (ORCID: <https://orcid.org/0009-0001-1147-4813>), Netherlands eScience Center [fnd]",
       "Maintainer": "Francesco Nattino <f.nattino@esciencecenter.nl>",
-      "Repository": "CRAN"
+      "Repository": "https://packagemanager.posit.co/cran/latest"
     },
     "rcrisp": {
       "Package": "rcrisp",
@@ -1964,7 +1964,7 @@
       "NeedsCompilation": "yes",
       "Author": "Edzer Pebesma [aut, cre] (ORCID: <https://orcid.org/0000-0001-8049-7069>), Roger Bivand [ctb] (ORCID: <https://orcid.org/0000-0003-2392-6140>), Etienne Racine [ctb], Michael Sumner [ctb], Ian Cook [ctb], Tim Keitt [ctb], Robin Lovelace [ctb], Hadley Wickham [ctb], Jeroen Ooms [ctb] (ORCID: <https://orcid.org/0000-0002-4035-0289>), Kirill Müller [ctb], Thomas Lin Pedersen [ctb], Dan Baston [ctb], Dewey Dunnington [ctb] (ORCID: <https://orcid.org/0000-0002-9415-4582>)",
       "Maintainer": "Edzer Pebesma <edzer.pebesma@uni-muenster.de>",
-      "Repository": "CRAN"
+      "Repository": "https://packagemanager.posit.co/cran/latest"
     },
     "sfheaders": {
       "Package": "sfheaders",
@@ -2549,12 +2549,12 @@
     "visor": {
       "Package": "visor",
       "Version": "0.1.0",
-      "Source": "GitHub",
+      "Source": "Repository",
       "Title": "Geospatial Tools for Visibility Analysis",
       "Authors@R": "c( person(\"Claudiu\", \"Forgaci\", , \"c.forgaci@tudelft.nl\", role = c(\"aut\", \"cre\", \"cph\"), comment = c(ORCID = \"0000-0003-3218-5102\")), person(\"Francesco\", \"Nattino\", , \"f.nattino@esciencecenter.nl\", role = \"aut\", comment = c(ORCID = \"0000-0003-3286-0139\")), person(\"Netherlands eScience Center\", , , \"info@esciencecenter.nl\", role = \"fnd\") )",
       "Description": "Provides tools for visibility analysis in geospatial data. It offers functionality to perform isovist calculations, using arbitrary geometries as both viewpoints and occluders.",
       "License": "Apache License (>= 2)",
-      "URL": "https://cityriverspaces.github.io/visor/, https://github.com/CityRiverSpaces/visor, https://doi.org/10.5281/zenodo.15133420",
+      "URL": "https://cityriverspaces.github.io/visor/, https://github.com/CityRiverSpaces/visor",
       "BugReports": "https://github.com/CityRiverSpaces/visor/issues",
       "Imports": [
         "sf",
@@ -2570,18 +2570,12 @@
       ],
       "Config/testthat/edition": "3",
       "Encoding": "UTF-8",
-      "LazyData": "true",
-      "Roxygen": "list(markdown = TRUE)",
       "RoxygenNote": "7.3.2",
       "VignetteBuilder": "knitr",
+      "NeedsCompilation": "no",
       "Author": "Claudiu Forgaci [aut, cre, cph] (<https://orcid.org/0000-0003-3218-5102>), Francesco Nattino [aut] (<https://orcid.org/0000-0003-3286-0139>), Netherlands eScience Center [fnd]",
       "Maintainer": "Claudiu Forgaci <c.forgaci@tudelft.nl>",
-      "RemoteType": "github",
-      "RemoteHost": "api.github.com",
-      "RemoteUsername": "CityRiverSpaces",
-      "RemoteRepo": "visor",
-      "RemoteRef": "main",
-      "RemoteSha": "4db8a16f67d9d87033fbf2afe60f0c9b964b144c"
+      "Repository": "RSPM"
     },
     "withr": {
       "Package": "withr",

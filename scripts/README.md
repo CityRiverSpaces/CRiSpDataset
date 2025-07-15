@@ -1,6 +1,6 @@
 # Scripts
 
-1. [`city_rivers_table.R`](./city_rivers_table.R): Clean the [Eurostat city population dataset](https://ec.europa.eu/eurostat/web/regions-and-cities) (see raw [dataset](../data/) retrieved as part of this repository) to identify urban areas with population above a certain threshold. For each urban area, the main waterway is idenfified (when present) on the basis of Open Street Map (OSM) data. The City River table is written a CSV file (see resulting [dataset](../output/city_rivers.csv)).
+1. [`city_rivers_table.R`](./city_rivers_table.R): Clean the [Eurostat city population dataset](https://ec.europa.eu/eurostat/web/regions-and-cities) (see raw [dataset](../data/) retrieved as part of this repository) to identify urban areas with population above a certain threshold. For each urban area, the main waterway is idenfified (when present) on the basis of Open Street Map (OSM) data.
 
 2. [`download_input_datasets.R`](./download_input_datasets.R): Take the City River table (see point 1., dataset [here](../output/city_rivers.csv)), and for each city river retrieve all the input data required to carry out the corridor delineation and segmentation: OSM datasets (street and rail networks, river centerline) and Copernicus 30m Digital Elevation Model (DEM).
 

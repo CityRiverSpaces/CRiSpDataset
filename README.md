@@ -37,3 +37,19 @@ In order to start a container based on the provided image:
   ```
 
   NOTE: the `--rm` option removes the container when terminated, the `-i` and `-t` options enable the interactive session.
+
+### Apptainer
+
+The published Docker image can also be used with Apptainer (e.g. on [DelftBlue](https://www.tudelft.nl/dhpc/system)):
+
+- Pull the image from GHCR and convert it to SIF format:
+
+  ```shell
+  apptainer pull crispdataset.sif docker://ghcr.io/cityriverspaces/crispdataset:latest
+  ```
+
+- Start an interactive R session within the (Apptainer) container with:
+
+  ```shell
+  apptainer run crispdataset.sif
+  ```

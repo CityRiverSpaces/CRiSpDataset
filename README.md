@@ -17,21 +17,21 @@ renv::restore()
 
 ### Docker
 
-Depdencencies are installed in a Docker image that is published to the GitHub Container Registry
-(GHCR), see [image page](https://github.com/CityRiverSpaces/CRiSpDataset/pkgs/container/crispdataset).
+Depencencies are installed in a Docker image that is published to the GitHub Container Registry
+(GHCR), see [the image page](https://github.com/CityRiverSpaces/CRiSpDataset/pkgs/container/crispdataset).
 
 In order to start a container based on the provided image:
 
-- Docker should be [installed](https://docs.docker.com/get-started/get-docker/) and running.
+- Docker [should be installed](https://docs.docker.com/get-started/get-docker/) and running.
 
 - Authenticate to GHCR using the Docker command line tool. You should first generate a Personal Access
-  Token from the GitHub website (instructions [here](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens#creating-a-fine-grained-personal-access-token)), then run in a terminal window:
+  Token from the GitHub web interface (see instructions [here](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens#creating-a-fine-grained-personal-access-token)), then run in a terminal window:
 
   ```shell
   docker login ghcr.io -u <YOUR_GITHUB_USERNAME>
   ```
 
-  and provide the just-generated token as password.
+  and provide the just-generated token when prompted for a password.
 
 - Run the following command to ppull the image from the registry:
 
@@ -42,7 +42,7 @@ In order to start a container based on the provided image:
 - Start an interactive session in the R console within the container with:
 
   ```shell
-  docker run --rm -it  ghcr.io/cityriverspaces/crispdataset:latest
+  docker run --rm -it ghcr.io/cityriverspaces/crispdataset:latest
   ```
 
   NOTE: the `--rm` option removes the container when terminated, the `-i` and `-t` options enable the interactive session.

@@ -24,22 +24,13 @@ In order to start a container based on the provided image:
 
 - Docker [should be installed](https://docs.docker.com/get-started/get-docker/) and running.
 
-- Authenticate to GHCR using the Docker command line tool. You should first generate a Personal Access
-  Token from the GitHub web interface (see instructions [here](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens#creating-a-fine-grained-personal-access-token)), then run in a terminal window:
-
-  ```shell
-  docker login ghcr.io -u <YOUR_GITHUB_USERNAME>
-  ```
-
-  and provide the just-generated token when prompted for a password.
-
-- Run the following command to ppull the image from the registry:
+- In a terminal window, run the following command to pull the image from the registry:
 
   ```shell
   docker pull ghcr.io/cityriverspaces/crispdataset:latest
   ```
 
-- Start an interactive session in the R console within the container with:
+- Start an interactive R session within the container with:
 
   ```shell
   docker run --rm -it ghcr.io/cityriverspaces/crispdataset:latest

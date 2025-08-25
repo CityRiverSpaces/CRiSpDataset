@@ -7,20 +7,27 @@ This repository hosts material related to the creation of the City River Spaces 
 ### Local install
 
 R should be installed (see e.g. instructions on [CRAN](http://cran.r-project.org/)).
-Create a R environment with all the required packages by running:
 
-```shell
+It is recommended to install the required dependencies in a project environment, which can be set up using [`renv`](https://rstudio.github.io/renv/). In the R terminal:
+
+```r
 # install.packages("renv")
 renv::init(bare = TRUE)
-renv::restore()
+```
+
+When prompted for which files to use for dependency discovery, you can select `1` (DESCRIPTION file only). Restart the R terminal.
+It is then easiest to install the project dependencies using [`devtools`](https://devtools.r-lib.org):
+
+```r
+install.packages("devtools")
+devtools::install_deps()
 ```
 
 ### Docker
 
-Depencencies are installed in a Docker image that is published to the GitHub Container Registry
-(GHCR), see [the image page](https://github.com/CityRiverSpaces/CRiSpDataset/pkgs/container/crispdataset).
+We also provide a Docker image that includes all the required dependencies. The image is published on the GitHub Container Registry (GHCR), see [the image page](https://github.com/CityRiverSpaces/CRiSpDataset/pkgs/container/crispdataset).
 
-In order to start a container based on the provided image:
+In order to start a container from the repository image:
 
 - Docker [should be installed](https://docs.docker.com/get-started/get-docker/) and running.
 

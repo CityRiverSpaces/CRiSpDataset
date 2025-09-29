@@ -2,11 +2,8 @@ name: Build and deploy image to GHCR
 
 on:
   push:
-    branches:
-      - main
-    paths:
-      - Dockerfile
-      - DESCRIPTION
+    tags:
+      - "*"
   workflow_dispatch:
 
 jobs:
@@ -34,8 +31,15 @@ jobs:
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
 
+    - name: Extract metadata (tags, labels) for Docker
+      id: meta
+      uses: docker/metadata-action@v5
+      with:
+        images: ghcr.io/${{ env.REPO }}
+
     - name: Build and push Docker image
       uses: docker/build-push-action@v5
       with:
         push: true
-        tags: ghcr.io/${{ env.REPO }}:latest
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}

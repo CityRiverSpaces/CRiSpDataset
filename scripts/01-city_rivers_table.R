@@ -4,6 +4,8 @@ library(rcrisp)
 library(sf)
 library(stringr)
 
+source("scripts/utils.R")
+
 # Increase timeout
 options(timeout = 300)
 
@@ -32,7 +34,7 @@ run <- function(population_filepath, population_threshold, output_filepath) {
   # Drop cities without a river
   city_rivers <- filter(city_rivers, !is.na(river_name))
   # Write data frame as CSV
-  write.csv(city_rivers, OUTPUT_FILEPATH)
+  write_csv(city_rivers, OUTPUT_FILEPATH)
 }
 
 #' Find cities whose population is above a given threshold
@@ -101,9 +103,9 @@ get_bb <- function(city_name) {
   osm_id <- as.character(df[1, "osm_id"])
 
   # Retrieve the OSM entry linked to the bounding box using its ID and type.
-  osm <- opq_osm_id(type = osm_type, id = osm_id) |>
-    opq_string() |>
-    osmdata_sf()
+  q <- opq_osm_id(type = osm_type, id = osm_id) |>
+    opq_string()
+  osm <- retry(osmdata_sf, q = q)
 
   # Extract the POLYGON and MULTIPOLYGON features of the OSM entry, and
   # stack them in a [`sf::sfc`] object
@@ -152,7 +154,13 @@ extract_refined_bb <- function(boundaries) {
 #'   results from a prevuous query are available in  the cache
 #' @return string
 get_river_name <- function(bb, force_download = FALSE) {
-  osm_data <- osmdata_as_sf("waterway", "river", bb, force_download = force_download)
+  osm_data <- retry(
+    osmdata_as_sf,
+    key = "waterway",
+    value = "river",
+    aoi = bb,
+    force_download = force_download
+  )
   # If we have no features, or no feature has a name, return NA
   if (is.null(osm_data$osm_lines) || all(is.null(osm_data$osm_lines$name))) {
     return(NA)
@@ -173,6 +181,16 @@ get_river_name <- function(bb, force_download = FALSE) {
     river_name <- str_remove(longest_river$name, "/.*$")
     return(river_name)
   }
+}
+
+#' Save output table to CSV
+#'
+#' @param city_rivers data frame
+#' @param output_filepath string
+write_csv <- function(city_rivers, output_filepath) {
+  dir <- dirname(output_filepath)
+  if (!dir.exists(dir)) dir.create(dir, recursive = TRUE)
+  write.csv(city_rivers, output_filepath)
 }
 
 # Call the main function

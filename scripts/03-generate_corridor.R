@@ -29,6 +29,9 @@ delineate_city <- function(vector_filepath, dem_filepath) {
   # Load required input datasets
   data <- load_data(vector_filepath, dem_filepath)
 
+  # Delineate valley
+  valley <- delineate_valley(data$dem, data$river)
+
   # Build spatial network using street and railways
   network <- build_network(data$streets, data$railways)
 
@@ -36,9 +39,7 @@ delineate_city <- function(vector_filepath, dem_filepath) {
   corridor <- delineate_corridor(network,
                                  data$river,
                                  max_width = 3000,
-                                 initial_method = "valley",
-                                 buffer = NULL,
-                                 dem = data$dem,
+                                 corridor_init = valley,
                                  max_iterations = 10,
                                  capping_method = "shortest-path")
 
@@ -46,7 +47,10 @@ delineate_city <- function(vector_filepath, dem_filepath) {
   network_filtered <- filter_network(network, corridor, buffer = 100)
 
   # Run delineation and return segmented corridor
-  delineate_segments(corridor, network_filtered, data$river)
+  delineate_segments(corridor,
+                     network_filtered,
+                     data$river,
+                     angle_threshold = 100)
 }
 
 #' Load input datasets

@@ -3,6 +3,8 @@ library(rcrisp)
 library(sf)
 library(terra)
 
+source("scripts/utils.R")
+
 # Set input parameters
 CITY_RIVERS_FILEPATH <- file.path("output", "city_rivers.csv")
 NETWORK_BUFFER <- 3500
@@ -56,7 +58,13 @@ retrieve_data <- function(city_name, river_name, bb, force_download = FALSE) {
 }
 
 get_river <- function(river_name, bb, force_download = force_download) {
-  osm <- osmdata_as_sf("waterway", "river", bb, force_download = force_download)
+  osm <- retry(
+    osmdata_as_sf,
+    key = "waterway",
+    value = "river",
+    aoi = bb,
+    force_download = force_download
+  )
   lines <- osm$osm_lines
   if (!is.null(osm$osm_multilines)) lines <- bind_rows(lines,
                                                        osm$osm_multilines)
@@ -70,14 +78,22 @@ get_river <- function(river_name, bb, force_download = force_download) {
 
 get_network <- function(aoi, force_download) {
   list(
-    streets = get_osm_streets(aoi, force_download = force_download),
-    railways = get_osm_railways(aoi, force_download = force_download)
+    streets = retry(
+      get_osm_streets,
+      aoi = aoi,
+      force_download = force_download
+    ),
+    railways = retry(
+      get_osm_railways,
+      aoi = aoi,
+      force_download = force_download
+    )
   )
 }
 
 write_osm <- function(data, filepath, crs = NULL) {
   # Make sure directory exists
-  dir.create(dirname(filepath), showWarnings = FALSE)
+  dir.create(dirname(filepath), showWarnings = FALSE, recursive = TRUE)
   # Create new file for the first layer ...
   append <- FALSE
   for (name in names(data)) {
@@ -90,7 +106,7 @@ write_osm <- function(data, filepath, crs = NULL) {
 
 write_dem <- function(data, filepath, crs = NULL) {
   # Make sure directory exists
-  dir.create(dirname(filepath), showWarnings = FALSE)
+  dir.create(dirname(filepath), showWarnings = FALSE, recursive = TRUE)
   if (!is.null(crs)) obj <- project(data, crs(paste("EPSG", crs, sep = ":")))
   writeRaster(obj, filepath)
 }

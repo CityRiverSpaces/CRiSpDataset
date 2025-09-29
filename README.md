@@ -72,34 +72,54 @@ The published Docker image can also be used with Apptainer (e.g. on [DelftBlue](
 
 ## Building the dataset
 
-Ideally, a GitHub release of the repository should be made before starting to build a new version of the
+Ideally, a GitHub release of the repository should be published before starting to build a new version of the
 dataset. Publishing the release, in fact, triggers the building of the container image, which is then
-published with the same tag label. Note that, for testing purposes, one can also trigger the image building
-manually (see "Run worflow" in [the `Actions` tag](https://github.com/CityRiverSpaces/CRiSpDataset/actions/workflows/build_image.yml)).
+published with the same tag. Note that, for testing purposes, the image building process can also
+be initiated manually (see "Run worflow" in
+[the `Actions` tag](https://github.com/CityRiverSpaces/CRiSpDataset/actions/workflows/build_image.yml)).
 
-Releasing the repository also triggers a Zenodo hook that snapshots the repository content for long term archival.
+Publishing a release of the GitHub repository also triggers a webhook that archives a snapshot of the repository on Zenodo.
 
-The dataset is then built via the following steps (more info on the scripts in the [`scripts`](./scripts/) folder):
+(A new version of) the dataset is built via the following steps (more info on the scripts in the [`scripts`](./scripts/) folder):
 
-* Clean the city population dataset from Eurostat (see the [`data`](./data/) folder). Run this locally using Docker as:
+- Clean the city population dataset from Eurostat (see the [`data`](./data/) folder). This step can be run on a
+  local workstation using Docker as:
+
   ```shell
   docker run --rm -it ghcr.io/cityriverspaces/crispdataset:latest Rscript ./scripts/01-city_rivers_table.R
   ```
-* Download all the required input datasets: [Open Street Map](www.openstreetmap.org) and [Copernicus DEM GLO-30](https://dataspace.copernicus.eu/explore-data/data-collections/copernicus-contributing-missions/collections-description/COP-DEM). Run this locally using Docker as:
+
+- Download all the required input datasets: [Open Street Map](www.openstreetmap.org) and [Copernicus DEM GLO-30](https://dataspace.copernicus.eu/explore-data/data-collections/copernicus-contributing-missions/collections-description/COP-DEM). Also this step can be run on a
+  local workstation using Docker as:
+
   ```shell
   docker run --rm -it ghcr.io/cityriverspaces/crispdataset:latest Rscript ./scripts/02-download_input_datasets.R
   ```
-* Generate the delineations for the cities. In order to run the delineations on [DelftBlue](https://doc.dhpc.tudelft.nl/delftblue/), copy the scripts and the retrieved input datasets to the cluster, e.g. to `/scratch`:
+
+- Generate the delineations for the cities. In order to run the delineations on [DelftBlue](https://doc.dhpc.tudelft.nl/delftblue/), copy the scripts and the retrieved input datasets to the cluster, e.g. to `/scratch`:
+
   ```shell
   scp -r ../CRiSpDataset delftblue:/scratch/fnattino/.
   ```
-  Access DelftBlue, and pull the latest Apptainer image with all required dependencies:
+
+  Access DelftBlue, and pull the latest Apptainer image with all the required dependencies:
+
   ```shell
   ssh delftblue
   cd /scratch/fnattino/CRiSpDataset
   apptainer pull crispdataset.sif docker://ghcr.io/cityriverspaces/crispdataset:latest
   ```
+
   Submit all delineations to the queue:
+
   ```shell
   bash ./scripts/03-generate_corridor.bash --slurm
   ```
+
+- Collect all delineation output in a single file:
+  ```shell
+  apptainer run crispdataset.sif Rscript ./scripts/04-collect-output.R
+  ```
+
+The file `crisp-dataset.gpkg` contains the new version of the dataset, and it can be released as a new version of the
+["CRiSp Dataset" record in the "CityRiverSpaces" Community on Zenodo]().

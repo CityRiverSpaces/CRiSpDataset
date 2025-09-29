@@ -11,7 +11,7 @@ git clone https://github.com/CityRiverSpaces/CRiSpDataset.git
 cd CRiSpDataset
 ```
 
-Set up an environment with all the required dependencies. This can be achieved either via a [`local install`](#local-install) or by using a [Docker](#docker) or [Apptainer](#apptainer) container.
+Set up an environment with all the required dependencies. This can be achieved either via a [`local install`](#local-install) or by using [Docker](#docker) or [Apptainer](#apptainer) containers.
 
 ### Local install
 
@@ -72,7 +72,14 @@ The published Docker image can also be used with Apptainer (e.g. on [DelftBlue](
 
 ## Building the dataset
 
-The dataset is built via the following steps (more info on the scripts in the [`scripts`](./scripts/) folder):
+Ideally, a GitHub release of the repository should be made before starting to build a new version of the
+dataset. Publishing the release, in fact, triggers the building of the container image, which is then
+published with the same tag label. Note that, for testing purposes, one can also trigger the image building
+manually (see "Run worflow" in [the `Actions` tag](https://github.com/CityRiverSpaces/CRiSpDataset/actions/workflows/build_image.yml)).
+
+Releasing the repository also triggers a Zenodo hook that snapshots the repository content for long term archival.
+
+The dataset is then built via the following steps (more info on the scripts in the [`scripts`](./scripts/) folder):
 
 * Clean the city population dataset from Eurostat (see the [`data`](./data/) folder). Run this locally using Docker as:
   ```shell

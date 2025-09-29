@@ -70,7 +70,7 @@ The published Docker image can also be used with Apptainer (e.g. on [DelftBlue](
   apptainer run crispdataset.sif
   ```
 
-## Build the dataset
+## Building the dataset
 
 The dataset is built via the following steps (more info on the scripts in the [`scripts`](./scripts/) folder):
 

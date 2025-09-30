@@ -118,8 +118,8 @@ Publishing a release of the GitHub repository also triggers a webhook that archi
 
 - Collect all delineation output in a single file:
   ```shell
-  apptainer run crispdataset.sif Rscript ./scripts/04-collect-output.R
+  apptainer run crispdataset.sif Rscript ./scripts/04-merge-output.R
   ```
 
-The file `crisp-dataset.gpkg` contains the new version of the dataset, and it can be released as a new version of the
+The file `./output/crisp-dataset.gpkg` contains the new version of the dataset, and it can be released as a new version of the
 ["CRiSp Dataset" record in the "CityRiverSpaces" Community on Zenodo]().

@@ -19,4 +19,4 @@
 
   See [`apptainer-run.slurm`](./apptainer-run.slurm) for the SLURM batch job file submitted to the queue when the `--slurm` option is used.
 
-- [`04-collect-output.R`](./04-collect-output.R): Collect all the delineated segments (see point 3.) in the the `crisp-dataset.gpkg` file.
+- [`04-merge-output.R`](./04-merge-output.R): Collect all the delineated segments (see point 3.) in the the `output/crisp-dataset.gpkg` file.
